@@ -18,11 +18,19 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.LocalHospital
+import androidx.compose.material.icons.filled.Receipt
+import androidx.compose.material.icons.filled.DateRange
+import androidx.compose.material.icons.filled.Biotech
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Checkbox
 import androidx.compose.material3.CheckboxDefaults
+import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextField
 import androidx.compose.material3.TextFieldDefaults
@@ -34,6 +42,7 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.PasswordVisualTransformation
@@ -386,4 +395,143 @@ fun PreviewPantallaLogin() {
 fun PreviewPantallaRegistro() {
     val navController = rememberNavController()
     PantallaRegistrarse(navController)
+}
+
+
+@Composable
+fun PantallaInicio(
+    navController:
+    NavController,
+    nombreUsuario: String
+) {
+    Box(
+        modifier = Modifier
+            .fillMaxSize()
+            .background(Color.White)
+    ) {
+        Column {
+            BarraSuperior(nombreUsuario)
+            ContenidoPrincipal()
+        }
+    }
+}
+
+@Composable
+fun BarraSuperior(nombreUsuario: String) {
+    Row(
+        modifier = Modifier
+            .fillMaxWidth()
+            .background(Color(0xFF2596be)) // Color HEX #2596be
+            .padding(8.dp),
+        verticalAlignment = Alignment.CenterVertically,
+        horizontalArrangement = Arrangement.SpaceBetween
+    ) {
+        // Parte izquierda: logo + textos
+        Row(verticalAlignment = Alignment.CenterVertically) {
+            Image(
+                painter = painterResource(id = R.drawable.logomaily), // Asegúrate de tener el logo en res/drawable
+                contentDescription = "Logo",
+                modifier = Modifier.size(40.dp)
+            )
+            Spacer(modifier = Modifier.width(8.dp))
+            Column {
+                Text(
+                    text = "Hola, $nombreUsuario",
+                    color = Color.White,
+                    fontSize = 16.sp
+                )
+                Text(
+                    text = "Registra tu estado de salud hoy.",
+                    color = Color.White,
+                    fontSize = 12.sp
+                )
+            }
+        }
+
+        // Parte derecha: iconos carrito y menú
+        Row(verticalAlignment = Alignment.CenterVertically) {
+            IconButton(onClick = { /* Acción del carrito */ }) {
+                Icon(
+                    painter = painterResource(id = R.drawable.iconocarrito),
+                    contentDescription = "Carrito",
+                    tint = Color.White,
+                    modifier = Modifier.size(24.dp)
+                )
+            }
+            Spacer(modifier = Modifier.width(8.dp))
+            IconButton(onClick = { /* Aquí luego desplegamos el menú */ }) {
+                Icon(
+                    painter = painterResource(id = R.drawable.iconomenu),
+                    contentDescription = "Menú",
+                    tint = Color.White,
+                    modifier = Modifier.size(24.dp)
+                )
+            }
+        }
+    }
+}
+
+@Preview(showBackground = true, showSystemUi = true)
+@Composable
+fun PantallaInicioPreview() {
+    PantallaInicio(
+        navController = rememberNavController(),
+        nombreUsuario = "Danna"
+    )
+}
+
+
+@Composable
+fun BotonesPrincipales() {
+    Column(
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(top = 16.dp),
+        horizontalAlignment = Alignment.CenterHorizontally
+    ) {
+        Row(
+            horizontalArrangement = Arrangement.spacedBy(16.dp)
+        ) {
+            BotonPrincipal(icon = Icons.Default.LocalHospital, texto = "Enfermería")
+            BotonPrincipal(icon = Icons.Default.Receipt, texto = "Recetas")
+        }
+
+        Spacer(modifier = Modifier.height(16.dp))
+
+        Row(
+            horizontalArrangement = Arrangement.spacedBy(16.dp)
+        ) {
+            BotonPrincipal(icon = Icons.Default.DateRange, texto = "Calendario")
+            BotonPrincipal(icon = Icons.Default.Biotech, texto = "Laboratorio")
+        }
+    }
+}
+
+@Composable
+fun BotonPrincipal(icon: ImageVector, texto: String) {
+    Button(
+        onClick = { /* Aquí puedes poner acción futura */ },
+        colors = ButtonDefaults.buttonColors(containerColor = Color(0xFFFF9800)),
+        modifier = Modifier.size(width = 155.dp, height = 48.dp, )
+    ) {
+        Icon(
+            imageVector = icon,
+            contentDescription = texto,
+            tint = Color.White
+        )
+        Spacer(modifier = Modifier.width(8.dp))
+        Text(
+            text = texto,
+            color = Color.White
+        )
+    }
+}
+
+@Composable
+fun ContenidoPrincipal(nombreUsuario: String = "Danna") {
+    Column {
+        BarraSuperior(nombreUsuario)
+        BotonesPrincipales()
+        // Luego agregamos el resto
+    }
 }
