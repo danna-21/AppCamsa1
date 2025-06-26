@@ -20,6 +20,8 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.foundation.text.KeyboardActions
+import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.LocalHospital
 import androidx.compose.material.icons.filled.Receipt
@@ -53,6 +55,10 @@ import androidx.navigation.NavController
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
+import androidx.compose.ui.platform.LocalFocusManager
+import androidx.compose.ui.focus.FocusDirection
+import androidx.compose.ui.text.input.ImeAction
+
 
 class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -106,15 +112,12 @@ fun PantallaLogin(navController: NavController) {
             )
             var email by remember { mutableStateOf("") }
             var password by remember { mutableStateOf("") }
+            val focusManager = LocalFocusManager.current
 
             TextField(
                 value = email,
                 onValueChange = { email = it },
-                placeholder = {
-                    Text(
-                        "Correo electrónico", fontSize = 14.sp, color = Color.Gray
-                    )
-                },
+                placeholder = { Text("Correo electrónico", fontSize = 14.sp, color = Color.Gray) },
                 modifier = Modifier
                     .border(1.dp, Color.LightGray, shape = RoundedCornerShape(10.dp))
                     .padding(horizontal = 10.dp)
@@ -126,6 +129,12 @@ fun PantallaLogin(navController: NavController) {
                     errorContainerColor = Color.White,
                     focusedTextColor = Color.Gray,
                     unfocusedTextColor = Color.Gray
+                ),
+                keyboardOptions = KeyboardOptions.Default.copy(
+                    imeAction = ImeAction.Next     // ① Botón “Next”
+                ),
+                keyboardActions = KeyboardActions(
+                    onNext = { focusManager.moveFocus(FocusDirection.Down) }  // ② pasa al siguiente campo
                 )
             )
             Spacer(
@@ -134,11 +143,7 @@ fun PantallaLogin(navController: NavController) {
             TextField(
                 value = password,
                 onValueChange = { password = it },
-                placeholder = {
-                    Text(
-                        "Contraseña", fontSize = 14.sp, color = Color.Gray
-                    )
-                },
+                placeholder = { Text("Contraseña", fontSize = 14.sp, color = Color.Gray) },
                 visualTransformation = PasswordVisualTransformation(),
                 modifier = Modifier
                     .border(1.dp, Color.LightGray, shape = RoundedCornerShape(10.dp))
@@ -151,6 +156,12 @@ fun PantallaLogin(navController: NavController) {
                     errorContainerColor = Color.White,
                     focusedTextColor = Color.Gray,
                     unfocusedTextColor = Color.Gray
+                ),
+                keyboardOptions = KeyboardOptions.Default.copy(
+                    imeAction = ImeAction.Done     // ③ Botón “Done”
+                ),
+                keyboardActions = KeyboardActions(
+                    onDone = { focusManager.clearFocus() }  // ④ cierra el teclado
                 )
             )
             Spacer(
@@ -205,6 +216,8 @@ fun PantallaRegistrarse(navController: NavController) {
     var email by remember { mutableStateOf("") }
     var password by remember { mutableStateOf("") }
     var aceptaTerminos by remember { mutableStateOf(false) }
+    val focusManager = LocalFocusManager.current
+
 
     Box(
         modifier = Modifier
@@ -255,7 +268,9 @@ fun PantallaRegistrarse(navController: NavController) {
                     errorContainerColor = Color.White,
                     focusedTextColor = Color.Gray,
                     unfocusedTextColor = Color.Gray
-                )
+                ),
+                keyboardOptions = KeyboardOptions.Default.copy(imeAction = ImeAction.Next),
+                keyboardActions = KeyboardActions(onNext = { focusManager.moveFocus(FocusDirection.Down) })
             )
             Spacer(
                 modifier = Modifier.height(15.dp)
@@ -279,7 +294,9 @@ fun PantallaRegistrarse(navController: NavController) {
                     errorContainerColor = Color.White,
                     focusedTextColor = Color.Gray,
                     unfocusedTextColor = Color.Gray
-                )
+                ),
+                keyboardOptions = KeyboardOptions.Default.copy(imeAction = ImeAction.Next),
+                keyboardActions = KeyboardActions(onNext = { focusManager.moveFocus(FocusDirection.Down) })
             )
             Spacer(
                 modifier = Modifier.height(15.dp)
@@ -303,7 +320,10 @@ fun PantallaRegistrarse(navController: NavController) {
                     errorContainerColor = Color.White,
                     focusedTextColor = Color.Gray,
                     unfocusedTextColor = Color.Gray
-                )
+                ),
+                keyboardOptions = KeyboardOptions.Default.copy(imeAction = ImeAction.Next),
+                keyboardActions = KeyboardActions(onNext = { focusManager.moveFocus(FocusDirection.Down) })
+
             )
             Spacer(
                 modifier = Modifier.height(15.dp)
@@ -328,7 +348,9 @@ fun PantallaRegistrarse(navController: NavController) {
                     errorContainerColor = Color.White,
                     focusedTextColor = Color.Gray,
                     unfocusedTextColor = Color.Gray
-                )
+                ),
+                keyboardOptions = KeyboardOptions.Default.copy(imeAction = ImeAction.Done),
+                keyboardActions = KeyboardActions(onDone = { focusManager.clearFocus() })
             )
 
             // Checkbox de Términos y Condiciones
@@ -412,6 +434,7 @@ fun PantallaInicio(
         Column {
             BarraSuperior(nombreUsuario)
             ContenidoPrincipal()
+            Especialidades()
         }
     }
 }
@@ -473,7 +496,7 @@ fun BarraSuperior(nombreUsuario: String) {
 
 @Preview(showBackground = true, showSystemUi = true)
 @Composable
-fun PantallaInicioPreview() {
+fun PreviewPantallaInicio() {
     PantallaInicio(
         navController = rememberNavController(),
         nombreUsuario = "Danna"
@@ -496,7 +519,7 @@ fun BotonesPrincipales() {
             BotonPrincipal(icon = Icons.Default.Receipt, texto = "Recetas")
         }
 
-        Spacer(modifier = Modifier.height(16.dp))
+        Spacer(modifier = Modifier.height(10.dp))
 
         Row(
             horizontalArrangement = Arrangement.spacedBy(16.dp)
@@ -510,28 +533,71 @@ fun BotonesPrincipales() {
 @Composable
 fun BotonPrincipal(icon: ImageVector, texto: String) {
     Button(
-        onClick = { /* Aquí puedes poner acción futura */ },
+        onClick = { /* ... */ },
         colors = ButtonDefaults.buttonColors(containerColor = Color(0xFFFF9800)),
-        modifier = Modifier.size(width = 155.dp, height = 48.dp, )
+        shape = RoundedCornerShape(6.dp),        // <-- aquí ajustas el radio
+        modifier = Modifier.size(width = 152.dp, height = 38.dp)
     ) {
-        Icon(
-            imageVector = icon,
-            contentDescription = texto,
-            tint = Color.White
-        )
-        Spacer(modifier = Modifier.width(8.dp))
-        Text(
-            text = texto,
-            color = Color.White
-        )
+        Icon(icon, contentDescription = texto, tint = Color.White)
+        Spacer(Modifier.width(8.dp))
+        Text(texto, color = Color.White)
     }
 }
 
 @Composable
 fun ContenidoPrincipal(nombreUsuario: String = "Danna") {
     Column {
-        BarraSuperior(nombreUsuario)
         BotonesPrincipales()
         // Luego agregamos el resto
+    }
+}
+
+@Composable
+fun Especialidades() {
+    Column(
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(horizontal = 16.dp, vertical = 16.dp),
+        horizontalAlignment = Alignment.CenterHorizontally
+    ) {
+        Spacer(modifier = Modifier.height(7.dp))
+
+        Text(
+            text = "Descubre a nuestros especialistas",
+            fontSize = 16.sp,
+            fontWeight = FontWeight.SemiBold,
+            color = Color.Black
+        )
+        Spacer(modifier = Modifier.height(8.dp))
+
+        // Filas de botones
+        Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+            BotonEspecialidad("Nutrición", modifier = Modifier.weight(1f))
+            BotonEspecialidad("Psicología", modifier = Modifier.weight(1f))
+        }
+        Spacer(modifier = Modifier.height(8.dp))
+        Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+            BotonEspecialidad("Odontología", modifier = Modifier.weight(1f))
+            BotonEspecialidad("Fisioterapia", modifier = Modifier.weight(1f))
+        }
+        Spacer(modifier = Modifier.height(8.dp))
+        Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+            BotonEspecialidad("Dermacosmética", modifier = Modifier.weight(1f))
+            BotonEspecialidad("Especialidades", modifier = Modifier.weight(1f))
+        }
+    }
+}
+
+@Composable
+fun BotonEspecialidad(texto: String, modifier: Modifier = Modifier) {
+    Button(
+        onClick = { /* Acción futura */ },
+        colors = ButtonDefaults.buttonColors(
+            containerColor = Color.LightGray
+        ),
+        shape = RoundedCornerShape(6.dp),
+        modifier = Modifier.size(width = 155.dp, height = 38.dp)
+    ) {
+        Text(text = texto, color = Color.Black, fontSize = 14.sp)
     }
 }
