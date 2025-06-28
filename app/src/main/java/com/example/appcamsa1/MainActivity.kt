@@ -601,3 +601,6 @@ fun BotonEspecialidad(texto: String, modifier: Modifier = Modifier) {
         Text(text = texto, color = Color.Black, fontSize = 14.sp)
     }
 }
+
+
+//klk mi viejjito loco
