@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "377995567111",
+    "project_id": "camsa-f83c0",
+    "storage_bucket": "camsa-f83c0.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:377995567111:android:b62484876ddbadb16acaa2",
+        "android_client_info": {
+          "package_name": "com.example.appcamsa1"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyCtBCGL28ftF8SFyurG2_g7_0cjtLq7V18"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

@@ -1,6 +1,7 @@
 package com.example.appcamsa1
 
 import android.os.Bundle
+import android.util.Log
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
@@ -27,27 +28,36 @@ import androidx.compose.material.icons.filled.LocalHospital
 import androidx.compose.material.icons.filled.Receipt
 import androidx.compose.material.icons.filled.DateRange
 import androidx.compose.material.icons.filled.Biotech
+import androidx.compose.material.icons.filled.Visibility
+import androidx.compose.material.icons.filled.VisibilityOff
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Checkbox
 import androidx.compose.material3.CheckboxDefaults
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
+import androidx.compose.material3.SnackbarHost
+import androidx.compose.material3.SnackbarHostState
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextField
 import androidx.compose.material3.TextFieldDefaults
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.remember
-import androidx.compose.runtime.*
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
+import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.platform.LocalFocusManager
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.input.PasswordVisualTransformation
+import androidx.compose.ui.text.input.VisualTransformation
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
@@ -55,10 +65,11 @@ import androidx.navigation.NavController
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
-import androidx.compose.ui.platform.LocalFocusManager
 import androidx.compose.ui.focus.FocusDirection
-import androidx.compose.ui.text.input.ImeAction
-
+import com.google.firebase.auth.ktx.auth
+import com.google.firebase.auth.FirebaseAuth
+import com.google.firebase.firestore.ktx.firestore
+import com.google.firebase.ktx.Firebase
 
 class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -76,13 +87,24 @@ class MainActivity : ComponentActivity() {
                 composable("registro") {
                     PantallaRegistrarse(navController)
                 }
+                composable("inicio") {
+                    PantallaInicio(navController, nombreUsuario = "Usuario")
+                }
             }
         }
     }
 }
 
+// PANTALLA 1: login
 @Composable
 fun PantallaLogin(navController: NavController) {
+    val snackbarHostState = remember { SnackbarHostState() }
+    var snackbarMessage by remember { mutableStateOf<String?>(null) }
+    var email by remember { mutableStateOf("") }
+    var password by remember { mutableStateOf("") }
+    var passwordVisible by remember { mutableStateOf(false) }
+    val focusManager = LocalFocusManager.current
+
     Box(
         modifier = Modifier
             .fillMaxSize()
@@ -96,28 +118,24 @@ fun PantallaLogin(navController: NavController) {
                 painter = painterResource(id = R.drawable.logomaily),
                 contentDescription = "Logo Maily T-Cuida",
                 modifier = Modifier.size(110.dp),
-
-                )
-            Spacer(
-                modifier = Modifier.height(3.dp)
             )
+            Spacer(modifier = Modifier.height(3.dp))
             Text(
                 text = "Maily", fontSize = 35.sp, fontWeight = FontWeight.Normal
             )
             Text(
                 text = "T-Cuida", fontSize = 18.sp, fontWeight = FontWeight.Normal
             )
-            Spacer(
-                modifier = Modifier.height(120.dp)
-            )
-            var email by remember { mutableStateOf("") }
-            var password by remember { mutableStateOf("") }
-            val focusManager = LocalFocusManager.current
+            Spacer(modifier = Modifier.height(120.dp))
 
             TextField(
                 value = email,
                 onValueChange = { email = it },
-                placeholder = { Text("Correo electrónico", fontSize = 14.sp, color = Color.Gray) },
+                placeholder = {
+                    Text(
+                        "Correo electrónico", fontSize = 14.sp, color = Color.Gray
+                    )
+                },
                 modifier = Modifier
                     .border(1.dp, Color.LightGray, shape = RoundedCornerShape(10.dp))
                     .padding(horizontal = 10.dp)
@@ -131,20 +149,31 @@ fun PantallaLogin(navController: NavController) {
                     unfocusedTextColor = Color.Gray
                 ),
                 keyboardOptions = KeyboardOptions.Default.copy(
-                    imeAction = ImeAction.Next     // ① Botón “Next”
+                    imeAction = ImeAction.Next
                 ),
                 keyboardActions = KeyboardActions(
-                    onNext = { focusManager.moveFocus(FocusDirection.Down) }  // ② pasa al siguiente campo
+                    onNext = { focusManager.moveFocus(FocusDirection.Down) }
                 )
             )
-            Spacer(
-                modifier = Modifier.height(20.dp)
-            )
+            Spacer(modifier = Modifier.height(20.dp))
             TextField(
                 value = password,
                 onValueChange = { password = it },
-                placeholder = { Text("Contraseña", fontSize = 14.sp, color = Color.Gray) },
-                visualTransformation = PasswordVisualTransformation(),
+                placeholder = {
+                    Text(
+                        "Contraseña", fontSize = 14.sp, color = Color.Gray
+                    )
+                },
+                visualTransformation = if (passwordVisible) VisualTransformation.None else PasswordVisualTransformation(),
+                trailingIcon = {
+                    IconButton(onClick = { passwordVisible = !passwordVisible }) {
+                        Icon(
+                            imageVector = if (passwordVisible) Icons.Default.VisibilityOff else Icons.Default.Visibility,
+                            contentDescription = if (passwordVisible) "Ocultar contraseña" else "Mostrar contraseña",
+                            tint = Color.Gray
+                        )
+                    }
+                },
                 modifier = Modifier
                     .border(1.dp, Color.LightGray, shape = RoundedCornerShape(10.dp))
                     .padding(horizontal = 10.dp)
@@ -158,18 +187,36 @@ fun PantallaLogin(navController: NavController) {
                     unfocusedTextColor = Color.Gray
                 ),
                 keyboardOptions = KeyboardOptions.Default.copy(
-                    imeAction = ImeAction.Done     // ③ Botón “Done”
+                    imeAction = ImeAction.Done
                 ),
                 keyboardActions = KeyboardActions(
-                    onDone = { focusManager.clearFocus() }  // ④ cierra el teclado
+                    onDone = { focusManager.clearFocus() }
                 )
             )
-            Spacer(
-                modifier = Modifier.height(35.dp)
-            )
+            Spacer(modifier = Modifier.height(35.dp))
             Button(
-                onClick = { },
-                colors = ButtonDefaults.buttonColors(containerColor = Color(0xFFFF9800)), // Naranja
+                onClick = {
+                    if (email.isBlank() || password.isBlank()) {
+                        snackbarMessage = "Completa ambos campos para iniciar sesión"
+                        return@Button
+                    }
+                    val auth = Firebase.auth
+                    auth.signInWithEmailAndPassword(email, password)
+                        .addOnCompleteListener { task ->
+                            if (task.isSuccessful) {
+                                Log.d("Login", "Inicio de sesión exitoso")
+                                snackbarMessage = "¡Bienvenido!"
+                                // Navegar a la pantalla principal después del login exitoso
+                                navController.navigate("inicio") {
+                                    popUpTo("login") { inclusive = true }
+                                }
+                            } else {
+                                Log.e("Login", "Error al iniciar sesión", task.exception)
+                                snackbarMessage = task.exception?.localizedMessage ?: "Debes iniciar sesión correctamente"
+                            }
+                        }
+                },
+                colors = ButtonDefaults.buttonColors(containerColor = Color(0xFFFF9800)),
                 shape = RoundedCornerShape(8.dp)
             ) {
                 Text(
@@ -179,9 +226,7 @@ fun PantallaLogin(navController: NavController) {
                     modifier = Modifier.padding(horizontal = 21.dp)
                 )
             }
-            Spacer(
-                modifier = Modifier.height(5.dp)
-            )
+            Spacer(modifier = Modifier.height(5.dp))
             Button(
                 onClick = { navController.navigate("registro") },
                 colors = ButtonDefaults.buttonColors(containerColor = Color.LightGray),
@@ -194,30 +239,37 @@ fun PantallaLogin(navController: NavController) {
                     modifier = Modifier.padding(horizontal = 30.dp)
                 )
             }
-            Spacer(
-                modifier = Modifier.height(5.dp)
-            )
+            Spacer(modifier = Modifier.height(5.dp))
 
             Text(
                 text = "¿Olvidaste tu contraseña?",
                 fontWeight = FontWeight.SemiBold,
                 color = Color(0xFFFF9800),
                 fontSize = 12.sp,
-                modifier = Modifier.clickable {})
+                modifier = Modifier.clickable {}
+            )
         }
+        LaunchedEffect(snackbarMessage) {
+            snackbarMessage?.let {
+                snackbarHostState.showSnackbar(it)
+                snackbarMessage = null
+            }
+        }
+        SnackbarHost(hostState = snackbarHostState, modifier = Modifier.align(Alignment.BottomCenter))
     }
 }
 
-
+// PANTALLA 2: registro
 @Composable
 fun PantallaRegistrarse(navController: NavController) {
+    val snackbarHostState = remember { SnackbarHostState() }
+    var snackbarMessage by remember { mutableStateOf<String?>(null) }
     var nombre by remember { mutableStateOf("") }
     var apellidos by remember { mutableStateOf("") }
     var email by remember { mutableStateOf("") }
     var password by remember { mutableStateOf("") }
     var aceptaTerminos by remember { mutableStateOf(false) }
     val focusManager = LocalFocusManager.current
-
 
     Box(
         modifier = Modifier
@@ -233,22 +285,16 @@ fun PantallaRegistrarse(navController: NavController) {
                 painter = painterResource(id = R.drawable.logomaily),
                 contentDescription = "Logo Maily T-Cuida",
                 modifier = Modifier.size(110.dp),
-
-                )
-            Spacer(
-                modifier = Modifier.height(3.dp)
             )
+            Spacer(modifier = Modifier.height(3.dp))
             Text(
                 text = "Maily", fontSize = 35.sp, fontWeight = FontWeight.Normal
             )
             Text(
                 text = "T-Cuida", fontSize = 18.sp, fontWeight = FontWeight.Normal
             )
-            Spacer(
-                modifier = Modifier.height(70.dp)
-            )
+            Spacer(modifier = Modifier.height(70.dp))
 
-            // Campos de texto
             TextField(
                 value = nombre,
                 onValueChange = { nombre = it },
@@ -272,9 +318,7 @@ fun PantallaRegistrarse(navController: NavController) {
                 keyboardOptions = KeyboardOptions.Default.copy(imeAction = ImeAction.Next),
                 keyboardActions = KeyboardActions(onNext = { focusManager.moveFocus(FocusDirection.Down) })
             )
-            Spacer(
-                modifier = Modifier.height(15.dp)
-            )
+            Spacer(modifier = Modifier.height(15.dp))
             TextField(
                 value = apellidos,
                 onValueChange = { apellidos = it },
@@ -298,9 +342,7 @@ fun PantallaRegistrarse(navController: NavController) {
                 keyboardOptions = KeyboardOptions.Default.copy(imeAction = ImeAction.Next),
                 keyboardActions = KeyboardActions(onNext = { focusManager.moveFocus(FocusDirection.Down) })
             )
-            Spacer(
-                modifier = Modifier.height(15.dp)
-            )
+            Spacer(modifier = Modifier.height(15.dp))
             TextField(
                 value = email,
                 onValueChange = { email = it },
@@ -323,11 +365,8 @@ fun PantallaRegistrarse(navController: NavController) {
                 ),
                 keyboardOptions = KeyboardOptions.Default.copy(imeAction = ImeAction.Next),
                 keyboardActions = KeyboardActions(onNext = { focusManager.moveFocus(FocusDirection.Down) })
-
             )
-            Spacer(
-                modifier = Modifier.height(15.dp)
-            )
+            Spacer(modifier = Modifier.height(15.dp))
             TextField(
                 value = password,
                 onValueChange = { password = it },
@@ -353,7 +392,6 @@ fun PantallaRegistrarse(navController: NavController) {
                 keyboardActions = KeyboardActions(onDone = { focusManager.clearFocus() })
             )
 
-            // Checkbox de Términos y Condiciones
             Row(
                 verticalAlignment = Alignment.CenterVertically,
                 horizontalArrangement = Arrangement.Start,
@@ -372,12 +410,57 @@ fun PantallaRegistrarse(navController: NavController) {
                     "Acepto los Términos y Condiciones de Maily.", fontSize = 12.sp
                 )
             }
-
             Spacer(Modifier.height(24.dp))
 
-            // Botón Registrar
             Button(
-                onClick = { /* Aquí podrías validar y enviar datos */ },
+                onClick = {
+                    if (nombre.isBlank() || apellidos.isBlank() || email.isBlank() || password.isBlank() || !aceptaTerminos) {
+                        snackbarMessage = "Completa todos los campos y acepta los términos"
+                        return@Button
+                    }
+                    if (!android.util.Patterns.EMAIL_ADDRESS.matcher(email).matches()) {
+                        snackbarMessage = "Correo electrónico no válido"
+                        return@Button
+                    }
+                    if (password.length < 6) {
+                        snackbarMessage = "La contraseña debe tener al menos 6 caracteres"
+                        return@Button
+                    }
+                    val auth = Firebase.auth
+                    val db = Firebase.firestore
+
+                    auth.createUserWithEmailAndPassword(email, password)
+                        .addOnCompleteListener { task ->
+                            if (task.isSuccessful) {
+                                val userId = auth.currentUser?.uid ?: ""
+                                val nuevoUsuario = hashMapOf(
+                                    "nombre" to nombre,
+                                    "apellidos" to apellidos,
+                                    "email" to email
+                                )
+                                db.collection("usuarios").document(userId)
+                                    .set(nuevoUsuario)
+                                    .addOnSuccessListener {
+                                        Log.d("Registro", "Usuario registrado y datos guardados")
+                                        snackbarMessage = "¡Registro exitoso! Ahora inicia sesión."
+                                        // Limpiar campos tras registro
+                                        nombre = ""
+                                        apellidos = ""
+                                        email = ""
+                                        password = ""
+                                        aceptaTerminos = false
+                                        navController.popBackStack()
+                                    }
+                                    .addOnFailureListener { e ->
+                                        Log.e("Registro", "Error al guardar datos", e)
+                                        snackbarMessage = "Error al guardar datos"
+                                    }
+                            } else {
+                                Log.e("Registro", "Error al crear usuario", task.exception)
+                                snackbarMessage = task.exception?.localizedMessage ?: "Error al crear usuario"
+                            }
+                        }
+                },
                 colors = ButtonDefaults.buttonColors(containerColor = Color(0xFFFF9800)),
                 shape = RoundedCornerShape(8.dp),
             ) {
@@ -388,42 +471,30 @@ fun PantallaRegistrarse(navController: NavController) {
                     modifier = Modifier.padding(horizontal = 21.dp)
                 )
             }
-            Spacer(
-                modifier = Modifier.height(5.dp)
-            )
+            Spacer(modifier = Modifier.height(5.dp))
 
             Text(
                 text = "¿Ya tienes una cuenta?",
                 fontWeight = FontWeight.SemiBold,
                 color = Color(0xFFFF9800),
                 fontSize = 12.sp,
-                modifier = Modifier.clickable { navController.popBackStack() })
+                modifier = Modifier.clickable { navController.popBackStack() }
+            )
         }
+        LaunchedEffect(snackbarMessage) {
+            snackbarMessage?.let {
+                snackbarHostState.showSnackbar(it)
+                snackbarMessage = null
+            }
+        }
+        SnackbarHost(hostState = snackbarHostState, modifier = Modifier.align(Alignment.BottomCenter))
     }
 }
 
-
-@Preview(showBackground = true)
-@Composable
-fun PreviewPantallaLogin() {
-    // 1) Creamos un navController de juguete
-    val navController = rememberNavController()
-    // 2) Llamamos tu Composable real
-    PantallaLogin(navController)
-}
-
-@Preview(showBackground = true)
-@Composable
-fun PreviewPantallaRegistro() {
-    val navController = rememberNavController()
-    PantallaRegistrarse(navController)
-}
-
-
+// PANTALLA 3: inicio
 @Composable
 fun PantallaInicio(
-    navController:
-    NavController,
+    navController: NavController,
     nombreUsuario: String
 ) {
     Box(
@@ -444,15 +515,14 @@ fun BarraSuperior(nombreUsuario: String) {
     Row(
         modifier = Modifier
             .fillMaxWidth()
-            .background(Color(0xFF2596be)) // Color HEX #2596be
+            .background(Color(0xFF2596be))
             .padding(8.dp),
         verticalAlignment = Alignment.CenterVertically,
         horizontalArrangement = Arrangement.SpaceBetween
     ) {
-        // Parte izquierda: logo + textos
         Row(verticalAlignment = Alignment.CenterVertically) {
             Image(
-                painter = painterResource(id = R.drawable.logomaily), // Asegúrate de tener el logo en res/drawable
+                painter = painterResource(id = R.drawable.logomaily),
                 contentDescription = "Logo",
                 modifier = Modifier.size(40.dp)
             )
@@ -471,7 +541,6 @@ fun BarraSuperior(nombreUsuario: String) {
             }
         }
 
-        // Parte derecha: iconos carrito y menú
         Row(verticalAlignment = Alignment.CenterVertically) {
             IconButton(onClick = { /* Acción del carrito */ }) {
                 Icon(
@@ -493,16 +562,6 @@ fun BarraSuperior(nombreUsuario: String) {
         }
     }
 }
-
-@Preview(showBackground = true, showSystemUi = true)
-@Composable
-fun PreviewPantallaInicio() {
-    PantallaInicio(
-        navController = rememberNavController(),
-        nombreUsuario = "Danna"
-    )
-}
-
 
 @Composable
 fun BotonesPrincipales() {
@@ -535,7 +594,7 @@ fun BotonPrincipal(icon: ImageVector, texto: String) {
     Button(
         onClick = { /* ... */ },
         colors = ButtonDefaults.buttonColors(containerColor = Color(0xFFFF9800)),
-        shape = RoundedCornerShape(6.dp),        // <-- aquí ajustas el radio
+        shape = RoundedCornerShape(6.dp),
         modifier = Modifier.size(width = 152.dp, height = 38.dp)
     ) {
         Icon(icon, contentDescription = texto, tint = Color.White)
@@ -545,10 +604,9 @@ fun BotonPrincipal(icon: ImageVector, texto: String) {
 }
 
 @Composable
-fun ContenidoPrincipal(nombreUsuario: String = "Danna") {
+fun ContenidoPrincipal(nombreUsuario: String = "Usuario") {
     Column {
         BotonesPrincipales()
-        // Luego agregamos el resto
     }
 }
 
@@ -570,7 +628,6 @@ fun Especialidades() {
         )
         Spacer(modifier = Modifier.height(8.dp))
 
-        // Filas de botones
         Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
             BotonEspecialidad("Nutrición", modifier = Modifier.weight(1f))
             BotonEspecialidad("Psicología", modifier = Modifier.weight(1f))
@@ -600,4 +657,27 @@ fun BotonEspecialidad(texto: String, modifier: Modifier = Modifier) {
     ) {
         Text(text = texto, color = Color.Black, fontSize = 14.sp)
     }
+}
+
+@Preview(showBackground = true)
+@Composable
+fun PreviewPantallaLogin() {
+    val navController = rememberNavController()
+    PantallaLogin(navController)
+}
+
+@Preview(showBackground = true)
+@Composable
+fun PreviewPantallaRegistro() {
+    val navController = rememberNavController()
+    PantallaRegistrarse(navController)
+}
+
+@Preview(showBackground = true, showSystemUi = true)
+@Composable
+fun PreviewPantallaInicio() {
+    PantallaInicio(
+        navController = rememberNavController(),
+        nombreUsuario = "Usuario"
+    )
 }
