@@ -19,34 +19,57 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.KeyboardActions
 import androidx.compose.foundation.text.KeyboardOptions
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.LocalHospital
-import androidx.compose.material.icons.filled.Receipt
-import androidx.compose.material.icons.filled.DateRange
+import androidx.compose.material.icons.filled.Air
+import androidx.compose.material.icons.filled.ArrowBack
 import androidx.compose.material.icons.filled.Biotech
+import androidx.compose.material.icons.filled.Bloodtype
+import androidx.compose.material.icons.filled.BubbleChart
+import androidx.compose.material.icons.filled.DateRange
+import androidx.compose.material.icons.filled.DeviceThermostat
+import androidx.compose.material.icons.filled.Fastfood
+import androidx.compose.material.icons.filled.Favorite
+import androidx.compose.material.icons.filled.FavoriteBorder
+import androidx.compose.material.icons.filled.Healing
+import androidx.compose.material.icons.filled.LocalFireDepartment
+import androidx.compose.material.icons.filled.LocalHospital
+import androidx.compose.material.icons.filled.MedicalServices
+import androidx.compose.material.icons.filled.MonitorWeight
+import androidx.compose.material.icons.filled.Opacity
+import androidx.compose.material.icons.filled.Receipt
+import androidx.compose.material.icons.filled.Straighten
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Checkbox
 import androidx.compose.material3.CheckboxDefaults
+import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextField
 import androidx.compose.material3.TextFieldDefaults
+import androidx.compose.material3.TopAppBar
+import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.remember
-import androidx.compose.runtime.*
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.focus.FocusDirection
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
+import androidx.compose.ui.platform.LocalFocusManager
 import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.input.PasswordVisualTransformation
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
@@ -55,9 +78,6 @@ import androidx.navigation.NavController
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
-import androidx.compose.ui.platform.LocalFocusManager
-import androidx.compose.ui.focus.FocusDirection
-import androidx.compose.ui.text.input.ImeAction
 
 
 class MainActivity : ComponentActivity() {
@@ -76,11 +96,18 @@ class MainActivity : ComponentActivity() {
                 composable("registro") {
                     PantallaRegistrarse(navController)
                 }
+                composable("inicio") {
+                    PantallaInicio(navController, nombreUsuario = "Danna")
+                }
+                composable("enfermeria") {
+                    PantallaEnfermeria(navController)
+                }
             }
         }
     }
 }
 
+// PANTALLA 1: login
 @Composable
 fun PantallaLogin(navController: NavController) {
     Box(
@@ -96,8 +123,7 @@ fun PantallaLogin(navController: NavController) {
                 painter = painterResource(id = R.drawable.logomaily),
                 contentDescription = "Logo Maily T-Cuida",
                 modifier = Modifier.size(110.dp),
-
-                )
+            )
             Spacer(
                 modifier = Modifier.height(3.dp)
             )
@@ -112,9 +138,11 @@ fun PantallaLogin(navController: NavController) {
             )
             var email by remember { mutableStateOf("") }
             var password by remember { mutableStateOf("") }
-            val focusManager = LocalFocusManager.current
+            val focusManager = LocalFocusManager.current //permite mover el foco de un campo a otro
 
-            TextField(
+
+
+            TextField( //CAMPO TEXTO: correo
                 value = email,
                 onValueChange = { email = it },
                 placeholder = { Text("Correo electrónico", fontSize = 14.sp, color = Color.Gray) },
@@ -130,17 +158,19 @@ fun PantallaLogin(navController: NavController) {
                     focusedTextColor = Color.Gray,
                     unfocusedTextColor = Color.Gray
                 ),
+                // propiedades que hacen que al dar enter se pase al sig. campo de texto
                 keyboardOptions = KeyboardOptions.Default.copy(
-                    imeAction = ImeAction.Next     // ① Botón “Next”
+                    imeAction = ImeAction.Next
                 ),
                 keyboardActions = KeyboardActions(
-                    onNext = { focusManager.moveFocus(FocusDirection.Down) }  // ② pasa al siguiente campo
+                    onNext = { focusManager.moveFocus(FocusDirection.Down) }
                 )
             )
             Spacer(
                 modifier = Modifier.height(20.dp)
             )
-            TextField(
+
+            TextField( //CAMPO TEXTO: contraseña
                 value = password,
                 onValueChange = { password = it },
                 placeholder = { Text("Contraseña", fontSize = 14.sp, color = Color.Gray) },
@@ -157,18 +187,20 @@ fun PantallaLogin(navController: NavController) {
                     focusedTextColor = Color.Gray,
                     unfocusedTextColor = Color.Gray
                 ),
+                // propiedades que hacen que al dar enter se pase al sig. campo de texto
                 keyboardOptions = KeyboardOptions.Default.copy(
-                    imeAction = ImeAction.Done     // ③ Botón “Done”
+                    imeAction = ImeAction.Done
                 ),
                 keyboardActions = KeyboardActions(
-                    onDone = { focusManager.clearFocus() }  // ④ cierra el teclado
+                    onDone = { focusManager.clearFocus() }
                 )
             )
             Spacer(
                 modifier = Modifier.height(35.dp)
             )
+            // boton iniciar sesion
             Button(
-                onClick = { },
+                onClick = { navController.navigate("inicio") }, // redirije a pantalla inicio
                 colors = ButtonDefaults.buttonColors(containerColor = Color(0xFFFF9800)), // Naranja
                 shape = RoundedCornerShape(8.dp)
             ) {
@@ -182,6 +214,7 @@ fun PantallaLogin(navController: NavController) {
             Spacer(
                 modifier = Modifier.height(5.dp)
             )
+            // boton registrarse
             Button(
                 onClick = { navController.navigate("registro") },
                 colors = ButtonDefaults.buttonColors(containerColor = Color.LightGray),
@@ -197,7 +230,7 @@ fun PantallaLogin(navController: NavController) {
             Spacer(
                 modifier = Modifier.height(5.dp)
             )
-
+            // boton olvidaste tu contraseña
             Text(
                 text = "¿Olvidaste tu contraseña?",
                 fontWeight = FontWeight.SemiBold,
@@ -208,7 +241,7 @@ fun PantallaLogin(navController: NavController) {
     }
 }
 
-
+// PANTALLA 2: registro
 @Composable
 fun PantallaRegistrarse(navController: NavController) {
     var nombre by remember { mutableStateOf("") }
@@ -216,7 +249,7 @@ fun PantallaRegistrarse(navController: NavController) {
     var email by remember { mutableStateOf("") }
     var password by remember { mutableStateOf("") }
     var aceptaTerminos by remember { mutableStateOf(false) }
-    val focusManager = LocalFocusManager.current
+    val focusManager = LocalFocusManager.current //permite mover el foco de un campo a otro
 
 
     Box(
@@ -248,8 +281,7 @@ fun PantallaRegistrarse(navController: NavController) {
                 modifier = Modifier.height(70.dp)
             )
 
-            // Campos de texto
-            TextField(
+            TextField( //CAMPO DE TEXTO: nombre
                 value = nombre,
                 onValueChange = { nombre = it },
                 placeholder = {
@@ -269,13 +301,14 @@ fun PantallaRegistrarse(navController: NavController) {
                     focusedTextColor = Color.Gray,
                     unfocusedTextColor = Color.Gray
                 ),
+                // propiedades que hacen que al dar enter se pase al sig. campo de texto
                 keyboardOptions = KeyboardOptions.Default.copy(imeAction = ImeAction.Next),
                 keyboardActions = KeyboardActions(onNext = { focusManager.moveFocus(FocusDirection.Down) })
             )
             Spacer(
                 modifier = Modifier.height(15.dp)
             )
-            TextField(
+            TextField( //CAMPO DE TEXTO: apellidos
                 value = apellidos,
                 onValueChange = { apellidos = it },
                 placeholder = {
@@ -295,13 +328,14 @@ fun PantallaRegistrarse(navController: NavController) {
                     focusedTextColor = Color.Gray,
                     unfocusedTextColor = Color.Gray
                 ),
+                // propiedades que hacen que al dar enter se pase al sig. campo de texto
                 keyboardOptions = KeyboardOptions.Default.copy(imeAction = ImeAction.Next),
                 keyboardActions = KeyboardActions(onNext = { focusManager.moveFocus(FocusDirection.Down) })
             )
             Spacer(
                 modifier = Modifier.height(15.dp)
             )
-            TextField(
+            TextField( //CAMPO DE TEXTO: correo
                 value = email,
                 onValueChange = { email = it },
                 placeholder = {
@@ -321,14 +355,14 @@ fun PantallaRegistrarse(navController: NavController) {
                     focusedTextColor = Color.Gray,
                     unfocusedTextColor = Color.Gray
                 ),
+                // propiedades que hacen que al dar enter se pase al sig. campo de texto
                 keyboardOptions = KeyboardOptions.Default.copy(imeAction = ImeAction.Next),
                 keyboardActions = KeyboardActions(onNext = { focusManager.moveFocus(FocusDirection.Down) })
-
             )
             Spacer(
                 modifier = Modifier.height(15.dp)
             )
-            TextField(
+            TextField( //CAMPO DE TEXTO: contraseña
                 value = password,
                 onValueChange = { password = it },
                 placeholder = {
@@ -349,11 +383,12 @@ fun PantallaRegistrarse(navController: NavController) {
                     focusedTextColor = Color.Gray,
                     unfocusedTextColor = Color.Gray
                 ),
+                // propiedades que hacen que al dar enter se pase al sig. campo de texto
                 keyboardOptions = KeyboardOptions.Default.copy(imeAction = ImeAction.Done),
                 keyboardActions = KeyboardActions(onDone = { focusManager.clearFocus() })
             )
 
-            // Checkbox de Términos y Condiciones
+            // checkbox de términos y condiciones
             Row(
                 verticalAlignment = Alignment.CenterVertically,
                 horizontalArrangement = Arrangement.Start,
@@ -372,12 +407,11 @@ fun PantallaRegistrarse(navController: NavController) {
                     "Acepto los Términos y Condiciones de Maily.", fontSize = 12.sp
                 )
             }
-
             Spacer(Modifier.height(24.dp))
 
-            // Botón Registrar
+            // boton registrar
             Button(
-                onClick = { /* Aquí podrías validar y enviar datos */ },
+                onClick = { navController.navigate("inicio") }, // redirije a pantalla inicio
                 colors = ButtonDefaults.buttonColors(containerColor = Color(0xFFFF9800)),
                 shape = RoundedCornerShape(8.dp),
             ) {
@@ -391,7 +425,6 @@ fun PantallaRegistrarse(navController: NavController) {
             Spacer(
                 modifier = Modifier.height(5.dp)
             )
-
             Text(
                 text = "¿Ya tienes una cuenta?",
                 fontWeight = FontWeight.SemiBold,
@@ -402,7 +435,7 @@ fun PantallaRegistrarse(navController: NavController) {
     }
 }
 
-
+// muestra preview de pantalla login
 @Preview(showBackground = true)
 @Composable
 fun PreviewPantallaLogin() {
@@ -412,6 +445,7 @@ fun PreviewPantallaLogin() {
     PantallaLogin(navController)
 }
 
+// muestra preview de pantalla regisro
 @Preview(showBackground = true)
 @Composable
 fun PreviewPantallaRegistro() {
@@ -419,11 +453,10 @@ fun PreviewPantallaRegistro() {
     PantallaRegistrarse(navController)
 }
 
-
+// PANTALLA 3: inicio
 @Composable
 fun PantallaInicio(
-    navController:
-    NavController,
+    navController: NavController,
     nombreUsuario: String
 ) {
     Box(
@@ -431,14 +464,16 @@ fun PantallaInicio(
             .fillMaxSize()
             .background(Color.White)
     ) {
-        Column {
+        Column(
+            modifier = Modifier.verticalScroll(rememberScrollState())
+        ) {
             BarraSuperior(nombreUsuario)
-            ContenidoPrincipal()
-            Especialidades()
+            ContenidoPrincipal(navController, nombreUsuario)
         }
     }
 }
 
+// se muestra la nav bar
 @Composable
 fun BarraSuperior(nombreUsuario: String) {
     Row(
@@ -449,10 +484,10 @@ fun BarraSuperior(nombreUsuario: String) {
         verticalAlignment = Alignment.CenterVertically,
         horizontalArrangement = Arrangement.SpaceBetween
     ) {
-        // Parte izquierda: logo + textos
+        // parte izquierda: logo + textos
         Row(verticalAlignment = Alignment.CenterVertically) {
             Image(
-                painter = painterResource(id = R.drawable.logomaily), // Asegúrate de tener el logo en res/drawable
+                painter = painterResource(id = R.drawable.logomaily),
                 contentDescription = "Logo",
                 modifier = Modifier.size(40.dp)
             )
@@ -471,7 +506,7 @@ fun BarraSuperior(nombreUsuario: String) {
             }
         }
 
-        // Parte derecha: iconos carrito y menú
+        // parte derecha: iconos carrito y menú
         Row(verticalAlignment = Alignment.CenterVertically) {
             IconButton(onClick = { /* Acción del carrito */ }) {
                 Icon(
@@ -503,55 +538,69 @@ fun PreviewPantallaInicio() {
     )
 }
 
-
+// botones enfermeria, recetas, calendario y lab
 @Composable
-fun BotonesPrincipales() {
+fun BotonesPrincipales(navController: NavController) {
     Column(
         modifier = Modifier
             .fillMaxWidth()
             .padding(top = 16.dp),
         horizontalAlignment = Alignment.CenterHorizontally
     ) {
-        Row(
-            horizontalArrangement = Arrangement.spacedBy(16.dp)
-        ) {
-            BotonPrincipal(icon = Icons.Default.LocalHospital, texto = "Enfermería")
-            BotonPrincipal(icon = Icons.Default.Receipt, texto = "Recetas")
+        Row(horizontalArrangement = Arrangement.spacedBy(16.dp)) {
+            BotonPrincipal(
+                icon = Icons.Default.LocalHospital,
+                texto = "Enfermería",
+                onClick = { navController.navigate("enfermeria") }
+            )
+            BotonPrincipal(
+                icon = Icons.Default.Receipt,
+                texto = "Recetas",
+                onClick = { /* luego lo conectas */ }
+            )
         }
 
         Spacer(modifier = Modifier.height(10.dp))
 
-        Row(
-            horizontalArrangement = Arrangement.spacedBy(16.dp)
-        ) {
-            BotonPrincipal(icon = Icons.Default.DateRange, texto = "Calendario")
-            BotonPrincipal(icon = Icons.Default.Biotech, texto = "Laboratorio")
+        Row(horizontalArrangement = Arrangement.spacedBy(16.dp)) {
+            BotonPrincipal(
+                icon = Icons.Default.DateRange,
+                texto = "Calendario",
+                onClick = { /* luego lo conectas */ }
+            )
+            BotonPrincipal(
+                icon = Icons.Default.Biotech,
+                texto = "Laboratorio",
+                onClick = { /* luego lo conectas */ }
+            )
         }
     }
 }
 
 @Composable
-fun BotonPrincipal(icon: ImageVector, texto: String) {
+fun BotonPrincipal(icon: ImageVector, texto: String, onClick: () -> Unit) {
     Button(
-        onClick = { /* ... */ },
+        onClick = onClick,
         colors = ButtonDefaults.buttonColors(containerColor = Color(0xFFFF9800)),
-        shape = RoundedCornerShape(6.dp),        // <-- aquí ajustas el radio
-        modifier = Modifier.size(width = 152.dp, height = 38.dp)
+        shape = RoundedCornerShape(6.dp),
+        modifier = Modifier.size(width = 156.dp, height = 38.dp)
     ) {
         Icon(icon, contentDescription = texto, tint = Color.White)
-        Spacer(Modifier.width(8.dp))
+        Spacer(Modifier.width(5.dp))
         Text(texto, color = Color.White)
     }
 }
 
 @Composable
-fun ContenidoPrincipal(nombreUsuario: String = "Danna") {
+fun ContenidoPrincipal(navController: NavController, nombreUsuario: String = "Danna") {
     Column {
-        BotonesPrincipales()
-        // Luego agregamos el resto
+        BotonesPrincipales(navController)
+        Especialidades()
+        SeccionBlog()
     }
 }
 
+// botones especialidades
 @Composable
 fun Especialidades() {
     Column(
@@ -596,8 +645,162 @@ fun BotonEspecialidad(texto: String, modifier: Modifier = Modifier) {
             containerColor = Color.LightGray
         ),
         shape = RoundedCornerShape(6.dp),
-        modifier = Modifier.size(width = 155.dp, height = 38.dp)
+        modifier = Modifier.size(width = 160.dp, height = 38.dp)
     ) {
-        Text(text = texto, color = Color.Black, fontSize = 14.sp)
+        Text(text = texto, color = Color.Black, fontSize = 13.sp)
     }
+}
+
+// blog
+@Composable
+fun SeccionBlog() {
+    Column(modifier = Modifier.padding(16.dp)) {
+        Text(
+            text = "Blog",
+            fontSize = 24.sp,
+            fontWeight = FontWeight.Bold,
+            color = Color.Black
+        )
+        Spacer(modifier = Modifier.height(16.dp))
+
+        // Artículo 1: Ansiedad
+        Text(
+            text = "¿Qué hacer cuando una persona tiene un ataque de ansiedad?",
+            fontSize = 18.sp,
+            fontWeight = FontWeight.SemiBold,
+            color = Color.Black
+        )
+        Image(
+            painter = painterResource(id = R.drawable.depresion),
+            contentDescription = "Imagen depresion",
+            modifier = Modifier
+                .fillMaxWidth()
+                .height(360.dp)
+        )
+        Text(
+            text = "Un ataque de ansiedad puede ser muy abrumador. Es importante mantener la calma, acompañar a la persona, hablar con voz suave y ayudarla a respirar profundamente...",
+            fontSize = 14.sp,
+            color = Color.DarkGray
+        )
+
+        Spacer(modifier = Modifier.height(24.dp))
+
+        // Artículo 2: Depresión
+        Text(
+            text = "¿Qué hacer cuando una persona sufre depresión?",
+            fontSize = 18.sp,
+            fontWeight = FontWeight.SemiBold,
+            color = Color.Black
+        )
+        Text(
+            text = "La depresión requiere apoyo emocional, comprensión y en muchos casos ayuda profesional. Evita juzgar, escucha activamente y acompaña a la persona en su proceso...",
+            fontSize = 14.sp,
+            color = Color.DarkGray
+        )
+        Image(
+            painter = painterResource(id = R.drawable.ansiedad),
+            contentDescription = "Imagen ansiedad",
+            modifier = Modifier
+                .fillMaxWidth()
+                .height(360.dp)
+        )
+    }
+}
+
+@Composable
+fun CampoEnfermeria(
+    icono: ImageVector,
+    etiqueta: String,
+    valor: String,
+    onValueChange: (String) -> Unit
+) {
+    Row(
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(8.dp)
+            .background(Color(0xFFF0F0F0), shape = RoundedCornerShape(12.dp))
+            .padding(horizontal = 16.dp, vertical = 6.dp),
+        verticalAlignment = Alignment.CenterVertically
+    ) {
+        Icon(
+            imageVector = icono,
+            contentDescription = etiqueta,
+            tint = Color(0xFF009688),
+            modifier = Modifier.size(24.dp)
+        )
+        Spacer(modifier = Modifier.width(16.dp))
+        Text(text = etiqueta, modifier = Modifier.weight(1f), color = Color.Black)
+        TextField(
+            value = valor,
+            onValueChange = onValueChange,
+            singleLine = true,
+            textStyle = TextStyle(fontSize = 14.sp, color = Color.Black),
+            colors = TextFieldDefaults.colors(
+                unfocusedContainerColor = Color.Transparent,
+                focusedContainerColor = Color.Transparent
+            ),
+            modifier = Modifier.width(60.dp)
+        )
+    }
+}
+
+// PANTALLA 4: pantalla enfermeria
+@OptIn(ExperimentalMaterial3Api::class)
+@Composable
+fun PantallaEnfermeria(navController: NavController) {
+    // Estados para cada campo
+    var peso by remember { mutableStateOf("0") }
+    var estatura by remember { mutableStateOf("0") }
+    var temperatura by remember { mutableStateOf("0") }
+    var frecuenciaCardiaca by remember { mutableStateOf("0") }
+    var frecuenciaRespiratoria by remember { mutableStateOf("0") }
+    var glucosa by remember { mutableStateOf("0") }
+    var colesterol by remember { mutableStateOf("0") }
+    var urea by remember { mutableStateOf("0") }
+    var trigliceridos by remember { mutableStateOf("0") }
+    var saturacionOxigeno by remember { mutableStateOf("0") }
+    var creatinina by remember { mutableStateOf("0") }
+    var presionArterial by remember { mutableStateOf("0") }
+    var hemoglobina by remember { mutableStateOf("0") }
+
+    Column(modifier = Modifier.fillMaxSize().background(Color.White)) {
+        // Barra superior
+        TopAppBar(
+            title = { Text("Enfermería", color = Color.White) },
+            navigationIcon = {
+                IconButton(onClick = { navController.popBackStack() }) {
+                    Icon(Icons.Default.ArrowBack, contentDescription = "Regresar", tint = Color.White)
+                }
+            },
+            colors = TopAppBarDefaults.topAppBarColors(containerColor = Color(0xFF0097A7))
+        )
+
+        // Contenido scrollable
+        Column(modifier = Modifier
+            .verticalScroll(rememberScrollState())
+            .padding(16.dp)) {
+
+            CampoEnfermeria(Icons.Default.MonitorWeight, "Peso", peso) { peso = it }
+            CampoEnfermeria(Icons.Default.Straighten, "Estatura", estatura) { estatura = it }
+            CampoEnfermeria(Icons.Default.DeviceThermostat, "Temperatura", temperatura) { temperatura = it }
+            CampoEnfermeria(Icons.Default.Favorite, "Frecuencia Cardíaca", frecuenciaCardiaca) { frecuenciaCardiaca = it }
+            CampoEnfermeria(Icons.Default.Air, "Frecuencia Respiratoria", frecuenciaRespiratoria) { frecuenciaRespiratoria = it }
+            CampoEnfermeria(Icons.Default.Bloodtype, "Glucosa", glucosa) { glucosa = it }
+            CampoEnfermeria(Icons.Default.Fastfood, "Colesterol", colesterol) { colesterol = it }
+            CampoEnfermeria(Icons.Default.Healing, "Urea", urea) { urea = it }
+            CampoEnfermeria(Icons.Default.LocalFireDepartment, "Triglicéridos", trigliceridos) { trigliceridos = it }
+            CampoEnfermeria(Icons.Default.BubbleChart, "Saturación de Oxígeno", saturacionOxigeno) { saturacionOxigeno = it }
+            CampoEnfermeria(Icons.Default.MedicalServices, "Creatinina", creatinina) { creatinina = it }
+            CampoEnfermeria(Icons.Default.FavoriteBorder, "Presión Arterial", presionArterial) { presionArterial = it }
+            CampoEnfermeria(Icons.Default.Opacity, "Hemoglobina", hemoglobina) { hemoglobina = it }
+        }
+    }
+}
+
+@Preview(showBackground = true, showSystemUi = true)
+@Composable
+fun PreviewPantallaEnfermeria() {
+    // Para la preview usamos un NavController "falso"
+    val navController = rememberNavController()
+    PantallaEnfermeria(navController)
 }
