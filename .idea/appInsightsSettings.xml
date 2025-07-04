@@ -8,10 +8,10 @@
             <InsightsFilterSettings>
               <option name="connection">
                 <ConnectionSetting>
-                  <option name="appId" value="PLACEHOLDER" />
-                  <option name="mobileSdkAppId" value="" />
-                  <option name="projectId" value="" />
-                  <option name="projectNumber" value="" />
+                  <option name="appId" value="com.example.appcamsa1" />
+                  <option name="mobileSdkAppId" value="1:377995567111:android:b62484876ddbadb16acaa2" />
+                  <option name="projectId" value="camsa-f83c0" />
+                  <option name="projectNumber" value="377995567111" />
                 </ConnectionSetting>
               </option>
               <option name="signal" value="SIGNAL_UNSPECIFIED" />
