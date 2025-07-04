@@ -659,6 +659,7 @@ fun BotonEspecialidad(texto: String, modifier: Modifier = Modifier) {
     }
 }
 
+
 @Preview(showBackground = true)
 @Composable
 fun PreviewPantallaLogin() {
