@@ -43,7 +43,11 @@ import androidx.navigation.NavController
 import androidx.navigation.compose.rememberNavController
 import androidx.compose.ui.platform.LocalFocusManager
 import androidx.compose.ui.focus.FocusDirection
+import androidx.compose.ui.graphics.Brush
 import com.example.appcamsa1.R
+import com.example.appcamsa1.ui.theme.Black
+import com.example.appcamsa1.ui.theme.Gray
+import com.example.appcamsa1.ui.theme.White
 
 @Composable
 fun PantallaRegistrarse(navController: NavController) {
@@ -57,7 +61,7 @@ fun PantallaRegistrarse(navController: NavController) {
     Box(
         modifier = Modifier
             .fillMaxSize()
-            .background(Color.White),
+            .background(Brush.verticalGradient(listOf(Gray, White), startY = 0f, endY = 600f)),
         contentAlignment = Alignment.Center
     ) {
         Column(
